@@ -13,3 +13,9 @@ __pycache__/
 *.pyc
 .DS_Store
 .ipynb_checkpoints/
+
+# Ignore all files in data folder
+downstream_tasks/data/*
+
+# But keep any .gitkeep files (or other placeholder files)
+!downstream_tasks/data/**/.gitkeep
