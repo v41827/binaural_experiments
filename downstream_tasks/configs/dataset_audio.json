@@ -3,8 +3,8 @@
     "datasets": [
         {
             "id": "binaural_dataset",
-            "path": "/path/to/your/all_binaural/wavs",
-            "custom_metadata_module": "/path/to/your/custom_metadata.py"
+            "path": "/parallel_scratch/yc01847/binaural_experiments/downstream_tasks/data/all_binauralwavs",
+            "custom_metadata_module": "/parallel_scratch/yc01847/binaural_experiments/downstream_tasks/scripts/custom_metadata_1.py"
         }
     ]
 }
