@@ -1,0 +1,10 @@
+{
+    "dataset_type": "audio_dir",
+    "datasets": [
+        {
+            "id": "binaural_dataset",
+            "path": "/path/to/your/all_binaural/wavs",
+            "custom_metadata_module": "/path/to/your/custom_metadata.py"
+        }
+    ]
+}

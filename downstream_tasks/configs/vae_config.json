@@ -1,0 +1,16 @@
+{
+    "model_type": "autoencoder",
+    "sample_rate": 44100,
+    "sample_size": 221184,
+    "audio_channels": 2,
+    "autoencoder": {
+        "type": "dac",
+        "config": {
+            "in_channels": 2,
+            "hidden_size": 128,
+            "residual_blocks": 9,
+            "latent_dim": 64,
+            "downsampling_ratio": 1024
+        }
+    }
+}

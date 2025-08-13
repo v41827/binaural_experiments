@@ -1,0 +1,15 @@
+# data / outputs / processed (keep placeholders)
+downstream_tasks/data/
+downstream_tasks/outputs/
+downstream_tasks/processed/
+!downstream_tasks/**/.gitkeep
+
+# checkpoints (fetch or LFS; keep README)
+downstream_tasks/checkpoints/
+!downstream_tasks/checkpoints/README.md
+
+# common noise
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
