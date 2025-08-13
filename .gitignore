@@ -1,21 +1,23 @@
-# data / outputs / processed (keep placeholders)
-downstream_tasks/data/
-downstream_tasks/outputs/
-downstream_tasks/processed/
-!downstream_tasks/**/.gitkeep
+# =============================
+# Keep folder structure, ignore heavy contents
+# =============================
 
-# checkpoints (fetch or LFS; keep README)
-downstream_tasks/checkpoints/
+# data: ignore everything under data/, keep .gitkeep anywhere within
+downstream_tasks/data/*
+!downstream_tasks/data/**/.gitkeep
+
+# outputs: same idea
+downstream_tasks/outputs/*
+!downstream_tasks/outputs/**/.gitkeep
+
+# checkpoints: ignore all, but keep a README with fetch instructions
+downstream_tasks/checkpoints/*
 !downstream_tasks/checkpoints/README.md
 
-# common noise
+# =============================
+# Common noise
+# =============================
 __pycache__/
 *.pyc
 .DS_Store
 .ipynb_checkpoints/
-
-# Ignore all files in data folder
-downstream_tasks/data/*
-
-# But keep any .gitkeep files (or other placeholder files)
-!downstream_tasks/data/**/.gitkeep
