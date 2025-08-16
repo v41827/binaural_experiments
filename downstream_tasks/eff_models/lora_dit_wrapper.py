@@ -72,14 +72,20 @@ class LoRADiTWrapper(nn.Module):
     def _debug_attributes(self):
         """Debug information about copied attributes"""
         print(f"🔍 Total attributes: {len([attr for attr in dir(self) if not attr.startswith('_')])}")
-        print(f" Has conditioner: {hasattr(self, 'conditioner')}")
+        print(f"🔍 Has conditioner: {hasattr(self, 'conditioner')}")
         if hasattr(self, 'conditioner'):
             print(f"🔍 Conditioner type: {type(self.conditioner)}")
         print(f"🔍 Has dist_shift: {hasattr(self, 'dist_shift')}")
         print(f"🔍 Has timestep_sampler: {hasattr(self, 'timestep_sampler')}")
         
-    def forward(self, *args, **kwargs):
-        return self.peft_model(*args, **kwargs)
+    def forward(self, x, t, cond=None, **kwargs):
+        # ✅ FIXED: Handle conditioning properly
+        if cond is not None:
+            # Pass conditioning to the model
+            return self.peft_model(x, t, cond=cond, **kwargs)
+        else:
+            # Handle case where no conditioning is provided
+            return self.peft_model(x, t, **kwargs)
     
     def save_pretrained(self, path):
         if hasattr(self.peft_model, 'save_pretrained'):
