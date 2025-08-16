@@ -110,11 +110,11 @@
                     }
                 },
                 "scheduler": {
-                    "type": "InverseLR",
+                    "type": "CosineAnnealingWarmRestarts",
                     "config": {
-                        "inv_gamma": 1000000,
-                        "power": 0.5,
-                        "warmup": 0.99
+                        "T_0": 8000,
+                        "T_mult": 2,
+                        "eta_min": 5e-7
                     }
                 }
             }
