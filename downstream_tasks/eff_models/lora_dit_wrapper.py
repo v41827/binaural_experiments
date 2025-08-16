@@ -78,14 +78,27 @@ class LoRADiTWrapper(nn.Module):
         print(f"🔍 Has dist_shift: {hasattr(self, 'dist_shift')}")
         print(f"🔍 Has timestep_sampler: {hasattr(self, 'timestep_sampler')}")
         
-    def forward(self, x, t, cond=None, **kwargs):
-        # ✅ FIXED: Handle conditioning properly
-        if cond is not None:
-            # Pass conditioning to the model
-            return self.peft_model(x, t, cond=cond, **kwargs)
-        else:
-            # Handle case where no conditioning is provided
-            return self.peft_model(x, t, **kwargs)
+    def forward(self, *args, **kwargs):
+        # ✅ ROBUST: Handle any calling pattern
+        try:
+            # Try to call the underlying model directly
+            return self.peft_model(*args, **kwargs)
+        except TypeError as e:
+            # If that fails, try to fix the arguments
+            if "missing 1 required positional argument: 'cond'" in str(e):
+                # The model expects 'cond' but it's not provided
+                # This happens in demo generation
+                if len(args) >= 2:
+                    x, t = args[0], args[1]
+                    # Pass remaining args as kwargs
+                    new_kwargs = kwargs.copy()
+                    if len(args) > 2:
+                        new_kwargs['cond'] = args[2]
+                    return self.peft_model(x, t, **new_kwargs)
+                else:
+                    raise e
+            else:
+                raise e
     
     def save_pretrained(self, path):
         if hasattr(self.peft_model, 'save_pretrained'):
