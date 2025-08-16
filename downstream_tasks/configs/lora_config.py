@@ -3,29 +3,27 @@ from peft import LoraConfig
 
 def get_lora_config():
     return LoraConfig(
-        r=8,  # Lower rank for efficiency
-        lora_alpha=16,
+        r=12,  # Increased from 8 for better azimuth precision
+        lora_alpha=24,  # Keep 2:1 ratio
         target_modules=[
-            # Attention layers in transformer blocks
-            "to_q", "to_kv", "to_out",
+            # CRITICAL: Azimuth conditioning layers (highest priority)
+            "to_cond_embed.0", "to_cond_embed.2",          # Text conditioning
+            "to_global_embed.0", "to_global_embed.2",      # Global conditioning  
+            "to_prepend_embed.0", "to_prepend_embed.2",    # Prepend conditioning
             
-            # Feed-forward layers in transformer blocks  
-            "linear_in", "linear_out",
+            # IMPORTANT: Cross-attention for azimuth-text interaction
+            "transformer.layers.*.cross_attn.to_q",         # Cross-attention Q
+            "transformer.layers.*.cross_attn.to_kv",        # Cross-attention KV
+            "transformer.layers.*.cross_attn.to_out",       # Cross-attention output
             
-            # Conditioning projection layers
-            "to_timestep_embed.0", "to_timestep_embed.2",  # Sequential layers
-            "to_cond_embed.0", "to_cond_embed.2",          # Sequential layers
+            # MODERATE: Core attention for azimuth influence
+            "to_q", "to_kv", "to_out",                      # Main attention
             
-            # Global conditioning layers
-            "to_global_embed.0", "to_global_embed.2",      # Sequential layers
-            
-            # Prepend conditioning layers
-            "to_prepend_embed.0", "to_prepend_embed.2",    # Sequential layers
-            
-            # Projection layers
-            "project_in", "project_out"
+            # LOWER PRIORITY: Keep minimal for efficiency
+            "linear_in", "linear_out",                      # Basic FFN
+            "project_in", "project_out"                     # I/O projections
         ],
-        lora_dropout=0.1,
+        lora_dropout=0.05,  # Reduced dropout for better azimuth learning
         bias="none",
-        task_type="CAUSAL_LM"  # Appropriate for diffusion models
+        task_type="CAUSAL_LM"
     )

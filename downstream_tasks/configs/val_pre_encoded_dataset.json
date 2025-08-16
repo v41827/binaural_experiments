@@ -1,0 +1,12 @@
+{
+    "dataset_type": "pre_encoded",
+    "datasets": [
+        {
+            "id": "val_pre_encoded_latents",
+            "path": "/parallel_scratch/yc01847/binaural_experiments/downstream_tasks/data/processed/kemar_binaural_latents/val",
+            "latent_crop_length": 108,
+            "custom_metadata_module": "/parallel_scratch/yc01847/binaural_experiments/downstream_tasks/scripts/custom_metadata_1.py"
+        }
+    ],
+    "random_crop": false
+}

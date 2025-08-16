@@ -1,6 +1,6 @@
 {
     "model_type": "diffusion_cond",
-    "sample_size": 2097152,
+    "sample_size": 221184,
     "sample_rate": 44100,
     "audio_channels": 2,
     "model": {
@@ -65,13 +65,21 @@
                         "min_val": 0,
                         "max_val": 512
                     }
+                },
+                {
+                    "id": "azimuth",
+                    "type": "number",
+                    "config": {
+                        "min_val": 0,
+                        "max_val": 359
+                    }
                 }
             ],
             "cond_dim": 768
         },
         "diffusion": {
-            "cross_attention_cond_ids": ["prompt", "seconds_start", "seconds_total"],
-            "global_cond_ids": ["seconds_start", "seconds_total"],
+            "cross_attention_cond_ids": ["prompt", "seconds_start", "seconds_total", "azimuth"],
+            "global_cond_ids": ["seconds_start", "seconds_total", "azimuth"],
             "type": "dit",
             "config": {
                 "io_channels": 64,
@@ -89,6 +97,8 @@
     "training": {
         "use_ema": true,
         "log_loss_info": false,
+        "cfg_dropout_prob": 0.8,
+        "pre_encoded": true,
         "optimizer_configs": {
             "diffusion": {
                 "optimizer": {
@@ -114,10 +124,10 @@
             "demo_steps": 250,
             "num_demos": 4,
             "demo_cond": [
-                {"prompt": "Amen break 174 BPM", "seconds_start": 0, "seconds_total": 12},
-                {"prompt": "A beautiful orchestral symphony, classical music", "seconds_start": 0, "seconds_total": 160},
-                {"prompt": "Chill hip-hop beat, chillhop", "seconds_start": 0, "seconds_total": 190},
-                {"prompt": "A pop song about love and loss", "seconds_start": 0, "seconds_total": 180}
+                {"prompt": "environment sound", "seconds_start": 0, "seconds_total": 5, "azimuth": 0},
+                {"prompt": "environment sound", "seconds_start": 0, "seconds_total": 5, "azimuth": 45},
+                {"prompt": "environment sound", "seconds_start": 0, "seconds_total": 5, "azimuth": 90},
+                {"prompt": "environment sound", "seconds_start": 0, "seconds_total": 5, "azimuth": 315}
             ],
             "demo_cfg_scales": [3, 6, 9]
         }
