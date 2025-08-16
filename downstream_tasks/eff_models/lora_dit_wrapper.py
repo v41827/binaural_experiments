@@ -18,30 +18,38 @@ class LoRADiTWrapper(nn.Module):
             self.peft_model = original_dit_model
         
         # CRITICAL: Maintain the expected structure for training wrapper
-        # The training wrapper expects self.model to exist
         self.model = self.peft_model
         
-        # Copy other attributes that the training wrapper might need
-        if hasattr(original_dit_model, 'diffusion_objective'):
-            self.diffusion_objective = original_dit_model.diffusion_objective
-        if hasattr(original_dit_model, 'conditioner'):
-            self.conditioner = original_dit_model.conditioner
-        if hasattr(original_dit_model, 'io_channels'):
-            self.io_channels = original_dit_model.io_channels
-        if hasattr(original_dit_model, 'sample_rate'):
-            self.sample_rate = original_dit_model.sample_rate
-        if hasattr(original_dit_model, 'min_input_length'):
-            self.min_input_length = original_dit_model.min_input_length
-        if hasattr(original_dit_model, 'cross_attn_cond_ids'):
-            self.cross_attn_cond_ids = original_dit_model.cross_attn_cond_ids
-        if hasattr(original_dit_model, 'global_cond_ids'):
-            self.global_cond_ids = original_dit_model.global_cond_ids
-        if hasattr(original_dit_model, 'input_concat_ids'):
-            self.input_concat_ids = original_dit_model.input_concat_ids
-        if hasattr(original_dit_model, 'prepend_cond_ids'):
-            self.prepend_cond_ids = original_dit_model.prepend_cond_ids
-        if hasattr(original_dit_model, 'pretransform'):
-            self.pretransform = original_dit_model.pretransform
+        # ✅ ADD: Copy ALL attributes from original model
+        for attr_name in dir(original_dit_model):
+            if not attr_name.startswith('_') and not callable(getattr(original_dit_model, attr_name)):
+                try:
+                    attr_value = getattr(original_dit_model, attr_name)
+                    setattr(self, attr_name, attr_value)
+                except Exception as e:
+                    print(f"⚠️  Could not copy attribute {attr_name}: {e}")
+        
+        # ✅ ADD: Ensure critical attributes exist with defaults
+        if not hasattr(self, 'dist_shift'):
+            self.dist_shift = None
+        if not hasattr(self, 'timestep_sampler'):
+            self.timestep_sampler = None
+        if not hasattr(self, 'validation_timesteps'):
+            self.validation_timesteps = [0.1, 0.3, 0.5, 0.7, 0.9]
+        if not hasattr(self, 'cfg_dropout_prob'):
+            self.cfg_dropout_prob = 0.1
+        if not hasattr(self, 'use_ema'):
+            self.use_ema = False
+        if not hasattr(self, 'ema_copy'):
+            self.ema_copy = None
+        if not hasattr(self, 'log_loss_info'):
+            self.log_loss_info = False
+        if not hasattr(self, 'clip_grad_norm'):
+            self.clip_grad_norm = 0.0
+        if not hasattr(self, 'trim_config'):
+            self.trim_config = None
+        if not hasattr(self, 'inpainting_config'):
+            self.inpainting_config = None
         
     def forward(self, *args, **kwargs):
         return self.peft_model(*args, **kwargs)
