@@ -6,22 +6,24 @@ def get_lora_config():
         r=12,  # Increased from 8 for better azimuth precision
         lora_alpha=24,  # Keep 2:1 ratio
         target_modules=[
-            # CRITICAL: Azimuth conditioning layers (highest priority)
-            "to_cond_embed.0", "to_cond_embed.2",          # Text conditioning
-            "to_global_embed.0", "to_global_embed.2",      # Global conditioning  
+            # SAFE: Azimuth conditioning layers (highest priority)
+            "to_cond_embed.0", "to_cond_embed.2",          # Text conditioning (768 -> 1536)
+            "to_global_embed.0", "to_global_embed.2",      # Global conditioning (1536 -> 1536)
             "to_prepend_embed.0", "to_prepend_embed.2",    # Prepend conditioning
             
-            # IMPORTANT: Cross-attention for azimuth-text interaction
-            "transformer.layers.*.cross_attn.to_q",         # Cross-attention Q
-            "transformer.layers.*.cross_attn.to_kv",        # Cross-attention KV
-            "transformer.layers.*.cross_attn.to_out",       # Cross-attention output
+            # SAFE: Cross-attention for azimuth-text interaction
+            "transformer.layers.*.cross_attn.to_q",         # Cross-attention Q (1536 -> 1536)
+            "transformer.layers.*.cross_attn.to_kv",        # Cross-attention KV (1536 -> 3072)
+            "transformer.layers.*.cross_attn.to_out",       # Cross-attention output (1536 -> 1536)
             
-            # MODERATE: Core attention for azimuth influence
-            "to_q", "to_kv", "to_out",                      # Main attention
+            # SAFE: Core attention for azimuth influence (only in transformer layers)
+            "transformer.layers.*.attn.to_q",               # Main attention Q (1536 -> 1536)
+            "transformer.layers.*.attn.to_kv",              # Main attention KV (1536 -> 3072)
+            "transformer.layers.*.attn.to_out",             # Main attention output (1536 -> 1536)
             
-            # LOWER PRIORITY: Keep minimal for efficiency
-            "linear_in", "linear_out",                      # Basic FFN
-            "project_in", "project_out"                     # I/O projections
+            # SAFE: Feed-forward networks in transformer layers
+            "transformer.layers.*.ff.linear_in",            # FFN input (1536 -> 6144)
+            "transformer.layers.*.ff.linear_out",           # FFN output (6144 -> 1536)
         ],
         lora_dropout=0.05,  # Reduced dropout for better azimuth learning
         bias="none",
