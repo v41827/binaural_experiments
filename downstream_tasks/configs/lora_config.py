@@ -25,5 +25,4 @@ def get_lora_config():
         ],
         lora_dropout=0.05,  # Reduced dropout for better azimuth learning
         bias="none",
-        task_type="CAUSAL_LM"
     )
