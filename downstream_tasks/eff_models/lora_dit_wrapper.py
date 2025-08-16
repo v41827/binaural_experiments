@@ -20,36 +20,63 @@ class LoRADiTWrapper(nn.Module):
         # CRITICAL: Maintain the expected structure for training wrapper
         self.model = self.peft_model
         
-        # ✅ ADD: Copy ALL attributes from original model
-        for attr_name in dir(original_dit_model):
-            if not attr_name.startswith('_') and not callable(getattr(original_dit_model, attr_name)):
-                try:
-                    attr_value = getattr(original_dit_model, attr_name)
-                    setattr(self, attr_name, attr_value)
-                except Exception as e:
-                    print(f"⚠️  Could not copy attribute {attr_name}: {e}")
+        # ✅ ROBUST: Copy ALL attributes including methods
+        self._copy_all_attributes(original_dit_model)
         
         # ✅ ADD: Ensure critical attributes exist with defaults
-        if not hasattr(self, 'dist_shift'):
-            self.dist_shift = None
-        if not hasattr(self, 'timestep_sampler'):
-            self.timestep_sampler = None
-        if not hasattr(self, 'validation_timesteps'):
-            self.validation_timesteps = [0.1, 0.3, 0.5, 0.7, 0.9]
-        if not hasattr(self, 'cfg_dropout_prob'):
-            self.cfg_dropout_prob = 0.1
-        if not hasattr(self, 'use_ema'):
-            self.use_ema = False
-        if not hasattr(self, 'ema_copy'):
-            self.ema_copy = None
-        if not hasattr(self, 'log_loss_info'):
-            self.log_loss_info = False
-        if not hasattr(self, 'clip_grad_norm'):
-            self.clip_grad_norm = 0.0
-        if not hasattr(self, 'trim_config'):
-            self.trim_config = None
-        if not hasattr(self, 'inpainting_config'):
-            self.inpainting_config = None
+        self._ensure_critical_attributes()
+        
+        # ✅ ADD: Debug information
+        self._debug_attributes()
+        
+    def _copy_all_attributes(self, original_model):
+        """Copy all attributes from original model"""
+        # Get all attributes from original model
+        original_attrs = set(dir(original_model))
+        # Get current attributes (excluding built-ins)
+        current_attrs = set(dir(self))
+        
+        # Find attributes to copy
+        attrs_to_copy = original_attrs - current_attrs
+        
+        for attr_name in attrs_to_copy:
+            if not attr_name.startswith('_'):
+                try:
+                    attr_value = getattr(original_model, attr_name)
+                    setattr(self, attr_name, attr_value)
+                    print(f"✅ Copied attribute: {attr_name}")
+                except Exception as e:
+                    print(f"⚠️  Could not copy attribute {attr_name}: {e}")
+    
+    def _ensure_critical_attributes(self):
+        """Ensure all critical attributes exist with defaults"""
+        critical_attrs = {
+            'dist_shift': None,
+            'timestep_sampler': None,
+            'validation_timesteps': [0.1, 0.3, 0.5, 0.7, 0.9],
+            'cfg_dropout_prob': 0.1,
+            'use_ema': False,
+            'ema_copy': None,
+            'log_loss_info': False,
+            'clip_grad_norm': 0.0,
+            'trim_config': None,
+            'inpainting_config': None,
+            'conditioner': None,  # This is critical!
+        }
+        
+        for attr_name, default_value in critical_attrs.items():
+            if not hasattr(self, attr_name):
+                setattr(self, attr_name, default_value)
+                print(f"⚠️  Set default for missing attribute: {attr_name}")
+    
+    def _debug_attributes(self):
+        """Debug information about copied attributes"""
+        print(f"🔍 Total attributes: {len([attr for attr in dir(self) if not attr.startswith('_')])}")
+        print(f" Has conditioner: {hasattr(self, 'conditioner')}")
+        if hasattr(self, 'conditioner'):
+            print(f"🔍 Conditioner type: {type(self.conditioner)}")
+        print(f"🔍 Has dist_shift: {hasattr(self, 'dist_shift')}")
+        print(f"🔍 Has timestep_sampler: {hasattr(self, 'timestep_sampler')}")
         
     def forward(self, *args, **kwargs):
         return self.peft_model(*args, **kwargs)
