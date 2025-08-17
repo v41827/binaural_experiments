@@ -86,15 +86,23 @@ class LoRADiTWrapper(nn.Module):
         except TypeError as e:
             # If that fails, try to fix the arguments
             if "missing 1 required positional argument: 'cond'" in str(e):
-                # The model expects 'cond' but it's not provided
-                # This happens in demo generation
+                # The model expects 'cond' as third positional argument
+                # But demo generation passes conditioning as kwargs
                 if len(args) >= 2:
                     x, t = args[0], args[1]
-                    # Pass remaining args as kwargs
-                    new_kwargs = kwargs.copy()
-                    if len(args) > 2:
-                        new_kwargs['cond'] = args[2]
-                    return self.peft_model(x, t, **new_kwargs)
+                    # Extract conditioning from kwargs
+                    cond = {}
+                    # Look for conditioning keys in kwargs
+                    cond_keys = ['cross_attn_cond', 'global_cond', 'input_concat_cond', 'prepend_cond']
+                    for key in cond_keys:
+                        if key in kwargs:
+                            cond[key] = kwargs.pop(key)
+                    # Also check for any other conditioning-related keys
+                    for key in list(kwargs.keys()):
+                        if 'cond' in key or 'mask' in key:
+                            cond[key] = kwargs.pop(key)
+                    # Pass cond as third positional argument
+                    return self.peft_model(x, t, cond, **kwargs)
                 else:
                     raise e
             else:
