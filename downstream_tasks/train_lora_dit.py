@@ -95,10 +95,12 @@ def main():
     ckpt_callback = pl.callbacks.ModelCheckpoint(every_n_train_steps=args.checkpoint_every, dirpath=checkpoint_dir, save_top_k=-1)
     save_model_config_callback = ModelConfigEmbedderCallback(model_config)
     
-    if args.val_dataset_config:
-        demo_callback = create_demo_callback_from_config(model_config, demo_dl=val_dl)
-    else:
-        demo_callback = create_demo_callback_from_config(model_config, demo_dl=train_dl)
+    demo_callback = None
+    if model_config.get('training', {}).get('demo', {}).get('demo_every', 2000) > 0:
+        if args.val_dataset_config:
+            demo_callback = create_demo_callback_from_config(model_config, demo_dl=val_dl)
+        else:
+            demo_callback = create_demo_callback_from_config(model_config, demo_dl=train_dl)
     
     # Combine configs for logging
     args_dict = vars(args)
@@ -111,12 +113,16 @@ def main():
         push_wandb_config(logger, args_dict)
     
     # Setup trainer
+    callbacks = [ckpt_callback, exc_callback, save_model_config_callback]
+    if demo_callback is not None:
+        callbacks.append(demo_callback)
+
     trainer = pl.Trainer(
         devices="auto",
         accelerator="gpu",
         precision=args.precision,
         max_epochs=100,
-        callbacks=[ckpt_callback, demo_callback, exc_callback, save_model_config_callback],
+        callbacks=callbacks,  # Use the conditional list
         logger=logger,
         val_check_interval=500,
         gradient_clip_val=args.gradient_clip_val,
