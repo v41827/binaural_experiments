@@ -79,33 +79,48 @@ class LoRADiTWrapper(nn.Module):
         print(f"🔍 Has timestep_sampler: {hasattr(self, 'timestep_sampler')}")
         
     def forward(self, *args, **kwargs):
-        # ✅ ROBUST: Handle any calling pattern
+        # ✅ ROBUST: Handle both calling patterns
         try:
-            # Try to call the underlying model directly
+            # Try to call the underlying model directly first
             return self.peft_model(*args, **kwargs)
         except TypeError as e:
-            # If that fails, try to fix the arguments
-            if "missing 1 required positional argument: 'cond'" in str(e):
-                # The model expects 'cond' as third positional argument
-                # But demo generation passes conditioning as kwargs
+            error_msg = str(e)
+            
+            # If it's the cond argument error, handle it
+            if "missing 1 required positional argument: 'cond'" in error_msg:
                 if len(args) >= 2:
                     x, t = args[0], args[1]
-                    # Extract conditioning from kwargs
-                    cond = {}
-                    # Look for conditioning keys in kwargs
-                    cond_keys = ['cross_attn_cond', 'global_cond', 'input_concat_cond', 'prepend_cond']
-                    for key in cond_keys:
-                        if key in kwargs:
-                            cond[key] = kwargs.pop(key)
-                    # Also check for any other conditioning-related keys
-                    for key in list(kwargs.keys()):
-                        if 'cond' in key or 'mask' in key:
-                            cond[key] = kwargs.pop(key)
-                    # Pass cond as third positional argument
-                    return self.peft_model(x, t, cond, **kwargs)
+                    
+                    # Check if conditioning is passed as keyword arguments (demo generation pattern)
+                    cond_keys = [
+                        'cross_attn_cond', 'cross_attn_mask',
+                        'global_cond', 'input_concat_cond',
+                        'prepend_cond', 'prepend_cond_mask',
+                        'negative_cross_attn_cond', 'negative_cross_attn_mask',
+                        'negative_global_cond', 'negative_input_concat_cond'
+                    ]
+                    
+                    has_cond_kwargs = any(key in kwargs for key in cond_keys)
+                    
+                    if has_cond_kwargs:
+                        # Demo generation pattern: call underlying model directly
+                        if hasattr(self.peft_model, 'model'):
+                            return self.peft_model.model(*args, **kwargs)
+                        else:
+                            # Fallback: create cond dict from kwargs
+                            cond = {}
+                            for key in cond_keys:
+                                if key in kwargs:
+                                    cond[key] = kwargs.pop(key)
+                            return self.peft_model(x, t, cond, **kwargs)
+                    else:
+                        # Training pattern: create empty cond dict
+                        cond = {}
+                        return self.peft_model(x, t, cond, **kwargs)
                 else:
                     raise e
             else:
+                # Re-raise the original error
                 raise e
     
     def save_pretrained(self, path):
