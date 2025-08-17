@@ -18,7 +18,11 @@ class LoRADiTWrapper(nn.Module):
             self.peft_model = original_dit_model
         
         # CRITICAL: Maintain the expected structure for training wrapper
-        self.model = self.peft_model
+        # For demo generation, module.diffusion.model should be the underlying DiT model
+        if hasattr(self.peft_model, 'model'):
+            self.model = self.peft_model.model  # Underlying DiT model
+        else:
+            self.model = self.peft_model  # Fallback
         
         # ✅ ROBUST: Copy ALL attributes including methods
         self._copy_all_attributes(original_dit_model)
