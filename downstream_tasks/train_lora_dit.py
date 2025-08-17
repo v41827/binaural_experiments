@@ -121,7 +121,7 @@ def main():
         devices="auto",
         accelerator="gpu",
         precision=args.precision,
-        max_epochs=100,
+        max_epochs=50,
         callbacks=callbacks,  # Use the conditional list
         logger=logger,
         val_check_interval=500,
