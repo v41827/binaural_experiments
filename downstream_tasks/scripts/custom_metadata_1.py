@@ -2,20 +2,27 @@
 import json
 import os
 
-def get_custom_metadata(info, audio):
+def get_custom_metadata(info):
     """
     Returns consistent prompt + azimuth for azimuth-focused training.
     Handles both raw audio format and pre-encoded latent format.
     """
     # Check if this is latent data (has latent_filename) or raw data (has relpath)
-    if "latent_filename" in info:
+    if "relpath" in info:
         # LATENT FORMAT: Use the existing azimuth and prompt from the JSON
         # The latent JSON already contains the correct azimuth and prompt
         return {
             "prompt": info.get("prompt", "environment sound"),
             "azimuth": info.get("azimuth", 0)
         }
-    
+    else:
+        # Fallback for unknown format
+        print(f"Warning: Unknown data format in info: {list(info.keys())}")
+        return {
+            "prompt": "environment sound",
+            "azimuth": 0
+        }
+"""
     elif "relpath" in info:
         # RAW FORMAT: Extract filename and look up in metadata.json
         filename = os.path.basename(info["relpath"])
@@ -136,3 +143,4 @@ if __name__ == "__main__":
     for test_name, passed in tests:
         status = "✅ PASS" if passed else "❌ FAIL"
         print(f"  {test_name}: {status}")
+"""
