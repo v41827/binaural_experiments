@@ -2,8 +2,9 @@
 import json
 import os
 
-def get_custom_metadata(info):
+def get_custom_metadata(info, audio):
     """
+    info: dict, the .json metadata for latent data points (for now, 20250817)
     Returns consistent prompt + azimuth for azimuth-focused training.
     Handles both raw audio format and pre-encoded latent format.
     """
@@ -11,6 +12,7 @@ def get_custom_metadata(info):
     if "relpath" in info:
         # LATENT FORMAT: Use the existing azimuth and prompt from the JSON
         # The latent JSON already contains the correct azimuth and prompt
+        #usage: info.get("key", default_value)
         return {
             "prompt": info.get("prompt", "environment sound"),
             "azimuth": info.get("azimuth", 0)
